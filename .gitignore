@@ -1,4 +1,21 @@
+# Terraform local state
+*.tfstate
+*.tfstate.*
 .terraform/
+crash.log
+override.tf
+override.tf.json
 .terraform.lock.hcl
-terraform.tfstate
-terraform.tfstate.backup
+
+# Sensitive files
+terraform.tfvars
+*.pem
+*.key
+*.pub
+
+# VS Code
+.vscode/
+
+# OS junk
+.DS_Store
+Thumbs.db
