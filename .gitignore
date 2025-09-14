@@ -19,3 +19,7 @@ terraform.tfvars
 # OS junk
 .DS_Store
 Thumbs.db
+
+*.tfstate
+*.tfstate.*
+terraform.tfvars
