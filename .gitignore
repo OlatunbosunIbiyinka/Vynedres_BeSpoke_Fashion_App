@@ -1,25 +1,55 @@
-# Terraform local state
+# VYNEDRES — gitignore
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.tfvars
+!*.tfvars.example
+
+# Terraform
+.terraform/
 *.tfstate
 *.tfstate.*
-.terraform/
 crash.log
+crash.*.log
 override.tf
 override.tf.json
-.terraform.lock.hcl
+*_override.tf
+*_override.tf.json
 
-# Sensitive files
-terraform.tfvars
-*.pem
-*.key
-*.pub
-
-# VS Code
+# Testing
+coverage/
+.idea/
 .vscode/
-
-# OS junk
+*.swp
+*.swo
 .DS_Store
 Thumbs.db
 
-*.tfstate
-*.tfstate.*
-terraform.tfvars
+# Logs & debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+
+# Docker
+*.log
+
+# Misc
+*.pem
+desktop.ini

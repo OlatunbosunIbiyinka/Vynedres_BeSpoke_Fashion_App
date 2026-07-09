@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans;
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    color: #211c14;
+    /* Warm ivory paper — subtle gold wash for depth instead of flat white */
+    background-color: #f7f4ec;
+    background-image:
+      radial-gradient(1100px 600px at 82% -10%, rgba(201, 162, 39, 0.12), transparent 60%),
+      radial-gradient(900px 700px at 4% 108%, rgba(150, 113, 47, 0.07), transparent 55%),
+      linear-gradient(180deg, #faf8f2 0%, #f5f1e8 100%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, .font-display {
+    letter-spacing: 0.005em;
+  }
+
+  ::selection {
+    background: rgba(201, 162, 39, 0.30);
+    color: #211c14;
+  }
+
+  /* Refined scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150, 113, 47, 0.35) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(150, 113, 47, 0.30);
+    border-radius: 9999px;
+  }
+}
+
+@layer components {
+  /* Hairline gold divider for editorial rhythm */
+  .rule-gold {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(201, 162, 39, 0.5),
+      transparent
+    );
+  }
+
+  .text-gold-sheen {
+    background: linear-gradient(135deg, #b8933f, #96712f 55%, #7c5d26);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Signature atelier surface — white card, hairline border, soft lift */
+  .atelier-card {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(33, 28, 20, 0.08);
+    background-color: #ffffff;
+    box-shadow: 0 10px 40px -24px rgba(33, 28, 20, 0.22);
+  }
+
+  .atelier-card-sm {
+    border-radius: 0.75rem;
+    border: 1px solid rgba(33, 28, 20, 0.08);
+    background-color: #ffffff;
+    box-shadow: 0 4px 20px -16px rgba(33, 28, 20, 0.22);
+  }
+
+  /* Editorial section eyebrow */
+  .eyebrow {
+    font-size: 10px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    color: #96712f;
+  }
+
+  /* Slow continuous mannequin turn (flat PNG via rotateY) */
+  .mannequin-turn {
+    transform-style: preserve-3d;
+    animation: mannequin-spin 28s linear infinite;
+    will-change: transform;
+  }
+
+  @keyframes mannequin-spin {
+    from {
+      transform: translateY(-50%) rotateY(0deg);
+    }
+    to {
+      transform: translateY(-50%) rotateY(360deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mannequin-turn {
+      animation: none;
+    }
+  }
+}
+
+@layer base {
+  /* Native date picker: visible icon on dark UI + readable popup on Windows/Chrome */
+  .date-picker-input {
+    color-scheme: light;
+    cursor: pointer;
+  }
+
+  .date-picker-input::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    width: 2.75rem;
+    height: 100%;
+    cursor: pointer;
+  }
+}

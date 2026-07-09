@@ -1,0 +1,13 @@
+{
+  "name": "vynedres-atelier",
+  "private": true,
+  "description": "VYNEDRES Atelier monorepo — run scripts from here or from each app folder",
+  "scripts": {
+    "dev:api": "npm run dev:clean --prefix apps/api",
+    "dev:web": "npm run dev:clean --prefix apps/web",
+    "dev": "node -e \"console.log('Use two terminals:\\n  npm run dev:api   (port 3001)\\n  npm run dev:web   (port 3000)')\"",
+    "stack:up": "docker compose -f docker-compose.stack.yml up -d --build",
+    "stack:down": "docker compose -f docker-compose.stack.yml down",
+    "test:api": "npm test --prefix apps/api"
+  }
+}

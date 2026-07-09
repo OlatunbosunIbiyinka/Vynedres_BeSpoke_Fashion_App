@@ -1,0 +1,42 @@
+{
+  "name": "@vynedres/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VYNEDRES Atelier API — multi-tenant bespoke fashion platform",
+  "scripts": {
+    "dev": "prisma generate && tsx watch src/index.ts",
+    "dev:clean": "node scripts/free-port.mjs 3001 && prisma generate && tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "lint": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/helmet": "^13.0.1",
+    "@prisma/client": "^6.3.1",
+    "bcryptjs": "^3.0.3",
+    "fastify": "^5.2.1",
+    "jose": "^6.2.3",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.13.4",
+    "prisma": "^6.3.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,151 +1,111 @@
-🌐 Azure Infrastructure with Terraform (IaC)
+# VYNEDRES Atelier
+
+[![CI](https://github.com/your-username/vynedres/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/vynedres/actions/workflows/ci.yml)
 
-This project provisions a complete Azure cloud environment using Terraform as Infrastructure as Code (IaC). It demonstrates how to build a secure, automated, and production-ready setup that can be reused and scaled for different environments.
+**Bespoke fashion platform for independent tailors and small fashion houses.**
 
-🚀 Project Overview
+VYNEDRES Atelier is a multi-tenant SaaS that lets studios manage clients, measurements, and bespoke orders — with a branded client portal. Built on Azure PaaS (Container Apps, PostgreSQL) without Kubernetes.
 
-Automates the deployment of Azure infrastructure with Terraform.
+---
 
-Provisions networking, compute, and security resources.
+## What you're building
 
-Configures a Linux Virtual Machine with Docker preinstalled using cloud-init.
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Web** | Next.js 15, TypeScript, Tailwind | Studio dashboard + client portal |
+| **API** | Fastify, Prisma, PostgreSQL | Multi-tenant REST API |
+| **Local DB** | Docker Compose | Development PostgreSQL |
+| **Cloud** | Terraform + Azure Container Apps | Production infrastructure |
 
-Ensures clean, modular, and reusable Terraform code.
+---
 
-Demonstrates IaC best practices with provider version locking, variables, outputs, and tagging.
+## Quick start
 
-🏗️ Architecture
+```bash
+# 1. Database
+docker compose up -d
 
-Resources provisioned include:
+# 2. API
+cd apps/api && cp .env.example .env && npm install
+npx prisma migrate dev --name init && npm run db:seed && npm run dev
 
-Resource Group – logical container for all resources.
+# 3. Web (new terminal)
+cd apps/web && cp .env.example .env.local && npm install && npm run dev
+```
 
-Virtual Network + Subnet – isolated, secure networking.
+| URL | Description |
+|-----|-------------|
+| http://localhost:3000 | Landing page |
+| http://localhost:3000/studio/vynedres | Studio dashboard (demo) |
+| http://localhost:3000/portal/vynedres | Client portal (demo) |
+| http://localhost:3001/health | API health check |
 
-Network Security Group (NSG) – firewall rules for controlled inbound/outbound traffic.
+Full guide: **[docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)**
 
-Public IP & Network Interface (NIC) – connectivity to the VM.
+---
 
-Linux Virtual Machine – provisioned with cloud-init for automation.
+## Project structure
 
-Custom Data Script – installs Docker + dependencies automatically on boot.
+```
+vynedres/
+├── apps/
+│   ├── api/                 # Fastify REST API + Prisma
+│   │   ├── prisma/          # Database schema & migrations
+│   │   └── src/
+│   │       ├── routes/      # API endpoints
+│   │       └── lib/         # Prisma client, tenant resolution
+│   └── web/                 # Next.js frontend
+│       └── src/app/
+│           ├── studio/[slug]   # Tailor dashboard
+│           └── portal/[slug]   # Client portal
+├── infra/terraform/
+│   ├── modules/             # Reusable Azure modules
+│   └── environments/dev/    # Dev environment wiring
+├── docs/
+│   ├── ARCHITECTURE.md      # System design (read this!)
+│   └── GETTING_STARTED.md   # Setup instructions
+└── docker-compose.yml       # Local PostgreSQL
+```
 
-⚙️ Features
+---
 
-Infrastructure as Code: Reproducible, version-controlled deployments.
+## Phase 1 features (current)
 
-Automation: No manual configuration — Docker is ready to use right after VM creation.
+- Multi-tenant studio registration
+- Client CRM with measurement profiles (JSON)
+- Bespoke order creation and pipeline status
+- Studio dashboard (clients + orders)
+- Client portal (order visibility)
+- Azure infrastructure as code (Container Apps, PostgreSQL, Storage, Key Vault)
 
-Security: NSG rules protect resources, and sensitive data is managed via variables.
+## Roadmap
 
-Scalability: Modular .tf files (network, compute, outputs, variables) for easy expansion.
+- [x] Authentication (studio JWT login — Phase 1.1)
+- [x] Measurement profiles in studio dashboard (view + add)
+- [ ] Measurement submission wizard (client portal)
+- [ ] Stripe subscriptions (Solo / Studio plans)
+- [ ] File uploads (Blob Storage)
+- [ ] WhatsApp notifications
+- [ ] AI fit assist & virtual try-on (Phase 3)
 
-Governance: Tagging for resource management and cost tracking.
+---
 
-📂 Project Structure
-.
-├── provider.tf          # Azure provider configuration
-├── resource-group.tf    # Resource group definition
-├── network.tf           # VNet, subnet, NSG
-├── compute.tf           # VM, NIC, Public IP
-├── data.tf              # Data sources
-├── output.tf            # Terraform outputs
-├── variable.tf          # Input variables
-├── terraform.tfvars     # Sensitive variable values (gitignored)
-├── customdata.tpl       # Cloud-init script to install Docker
-└── ssh-config.tpl       # Template for SSH configuration
+## Learn from this repo
 
-🔑 Custom Data Script (Docker Install)
+1. **Multi-tenancy** — `apps/api/prisma/schema.prisma` + `src/lib/tenant.ts`
+2. **API design** — `apps/api/src/routes/`
+3. **Full-stack flow** — `apps/web/src/app/studio/[slug]/page.tsx` → API → DB
+4. **IaC on Azure PaaS** — `infra/terraform/environments/dev/main.tf`
+5. **Why not Kubernetes** — see `docs/ARCHITECTURE.md`
 
-On VM creation, the following steps are automated:
+---
 
-Updates packages
+## Author
 
-Installs dependencies
+**Olatunbosun Ibiyinka**
 
-Adds Docker’s official GPG key & repository
+---
 
-Installs Docker CE, CLI, and container runtime
+## License
 
-Grants Docker access to the default user
-
-This ensures every VM is ready for containerized workloads immediately.
-
-▶️ Getting Started
-Prerequisites
-
-Terraform
- installed
-
-Azure CLI
- installed & logged in
-
-SSH key pair generated (~/.ssh/ncazurekey and ~/.ssh/ncazurekey.pub)
-
-Steps
-
-Clone the repository:
-
-git clone https://github.com/<your-username>/Azure-Terraform-ncProject.git
-cd Azure-Terraform-ncProject
-
-
-Initialize Terraform:
-
-terraform init
-
-
-Preview resources:
-
-terraform plan
-
-
-Deploy resources:
-
-terraform apply
-
-📤 Outputs
-
-After a successful deployment, Terraform provides the public IP address of the VM for SSH access:
-
-ssh -i ~/.ssh/ncazurekey adminuser@<public-ip>
-
-🔐 Security Notes
-
-The .terraform/, *.tfstate, and *.tfvars files are excluded via .gitignore.
-
-Sensitive data (like keys, credentials, and state) should never be pushed to GitHub.
-
-📈 Future Enhancements
-
-Add load balancers & autoscaling sets.
-
-Implement monitoring & logging (Azure Monitor).
-
-Deploy applications via Terraform modules.
-
-Integrate CI/CD pipelines with GitHub Actions.
-
-📌 Learning Outcomes
-
-This project highlights:
-
-Terraform IaC best practices
-
-Azure networking & security fundamentals
-
-Linux VM provisioning with automation
-
-Docker-ready environments
-
-GitHub workflow for cloud projects
-
-👤 Author
-
-Olatunbosun Ibiyinka
-🔗 LinkedIn
- | 💻 GitHub
-
-🏷️ Tags
-
-Terraform · Azure · IaC · Cloud Engineering · DevOps · Docker · Automation
+MIT — see [LICENSE](LICENSE)

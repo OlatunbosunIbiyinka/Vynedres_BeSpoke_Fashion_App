@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vynedres-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vynedres
+      POSTGRES_PASSWORD: vynedres
+      POSTGRES_DB: vynedres
+    ports:
+      - "5432:5432"
+    volumes:
+      - vynedres_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vynedres -d vynedres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: vynedres-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://vynedres:vynedres@postgres:5432/vynedres?schema=public
+      PORT: 3001
+      HOST: 0.0.0.0
+      NODE_ENV: production
+      CORS_ORIGIN: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET:-dev-only-change-me-in-production}
+      JWT_EXPIRES_IN: 7d
+      RUN_SEED: ${RUN_SEED:-true}
+    ports:
+      - "3001:3001"
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3001
+    container_name: vynedres-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "3000:3000"
+
+volumes:
+  vynedres_pg_data:

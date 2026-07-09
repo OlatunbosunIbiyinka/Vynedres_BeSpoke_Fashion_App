@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  OWNER
+  STAFF
+}
+
+enum OrderStatus {
+  NEW
+  IN_PROGRESS
+  FITTING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum MeasurementSource {
+  STUDIO
+  PORTAL
+}
+
+// ─── Multi-tenant core ───────────────────────────────────────────────────────
+// Every tailor/fashion house is a Tenant (studio).
+// All business data is scoped by tenantId — this is how SaaS isolation works.
+
+model Tenant {
+  id        String   @id @default(cuid())
+  slug      String   @unique // URL-safe: vynedres, amara-tailoring
+  name      String
+  logoUrl   String?
+  currency  String   @default("GBP")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users              User[]
+  clients            Client[]
+  orders             Order[]
+  portalAccessTokens PortalAccessToken[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  email        String
+  name         String
+  passwordHash String
+  role         UserRole @default(STAFF)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("users")
+}
+
+// ─── Client-facing data (belongs to a tenant's customers) ────────────────────
+
+model Client {
+  id        String   @id @default(cuid())
+  tenantId  String
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  measurements       MeasurementProfile[]
+  orders             Order[]
+  portalAccessTokens PortalAccessToken[]
+
+  @@index([tenantId])
+  @@index([tenantId, lastName])
+  @@map("clients")
+}
+
+/// Opaque invite token for client portal access (hashed at rest).
+/// Raw token is shown once when the studio creates an invite link.
+model PortalAccessToken {
+  id         String    @id @default(cuid())
+  tenantId   String
+  clientId   String
+  tokenHash  String    @unique
+  label      String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@index([expiresAt])
+  @@map("portal_access_tokens")
+}
+
+model MeasurementProfile {
+  id        String   @id @default(cuid())
+  tenantId  String
+  clientId  String
+  orderId   String?
+  label     String   @default("Default")
+  source    MeasurementSource @default(STUDIO)
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  order  Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([clientId])
+  @@index([orderId])
+  @@map("measurement_profiles")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tenantId    String
+  clientId    String
+  orderNumber String
+  garmentType String
+  fabric      String?
+  styleNotes  String?
+  price       Decimal?    @db.Decimal(10, 2)
+  deposit     Decimal?    @db.Decimal(10, 2)
+  dueDate     DateTime?
+  collectionDate DateTime?
+  status      OrderStatus @default(NEW)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  tenant            Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client            Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  statusHistory     OrderStatusHistory[]
+  fittingRounds     FittingRound[]
+  outcome           OrderOutcome?
+  measurementProfiles MeasurementProfile[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([clientId])
+  @@map("orders")
+}
+
+/// Snapshot at each fitting — core of the Fit Graph.
+model FittingRound {
+  id           String   @id @default(cuid())
+  tenantId     String
+  orderId      String
+  roundNumber  Int
+  label        String   @default("Fitting")
+  measurements Json
+  alterations  String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, roundNumber])
+  @@index([tenantId])
+  @@index([orderId])
+  @@map("fitting_rounds")
+}
+
+/// Recorded when order is delivered — closes the Fit Graph loop.
+model OrderOutcome {
+  id              String   @id @default(cuid())
+  orderId         String   @unique
+  fitSuccess      Boolean
+  remakeRequired  Boolean  @default(false)
+  notes           String?
+  recordedAt      DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_outcomes")
+}
+
+model OrderStatusHistory {
+  id        String      @id @default(cuid())
+  orderId   String
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_status_history")
+}

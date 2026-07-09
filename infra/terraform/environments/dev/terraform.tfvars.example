@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and customize (never commit terraform.tfvars)
+location    = "uksouth"
+environment = "dev"
+
+tags = {
+  Owner = "VYNEDRES"
+}
+
+# After building Docker images, push to ACR and set:
+# api_container_image = "<acr>.azurecr.io/vynedres-api:latest"
+# web_container_image = "<acr>.azurecr.io/vynedres-web:latest"
